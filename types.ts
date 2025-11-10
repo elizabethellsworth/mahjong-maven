@@ -1,26 +1,25 @@
-export interface Player {
-  id: string;
-  name: string;
-  avatarUrl: string;
-}
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
 
-export interface DayAvailability {
-  available: boolean;
-  hosting: boolean;
-}
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
 
-export interface PlayerAvailability {
-  [date: string]: DayAvailability;
-}
-
-export interface AllPlayersAvailability {
-  [playerId: string]: PlayerAvailability;
-}
-
-export interface Game {
-  date: string;
-  host: Player;
-  players: Player[];
-  waitlist: Player[];
-  status: 'proposed' | 'finalized';
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }
