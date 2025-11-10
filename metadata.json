@@ -1,0 +1,5 @@
+{
+  "name": "Mah Jong Maven",
+  "description": "An elegant scheduling application for Mah Jong groups. Players can set their availability and willingness to host, and the app automatically schedules games. It also manages a waitlist for cancellations.",
+  "requestFramePermissions": []
+}
