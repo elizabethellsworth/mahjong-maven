@@ -1,15 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import type { Game } from '../types';
 
-const API_KEY = process.env.API_KEY;
-
-if (!API_KEY) {
-  // This is a fallback for development. In a real environment, the key should be set.
-  console.warn("API_KEY is not set. Gemini features will be disabled.");
-}
-
-const ai = new GoogleGenAI({ apiKey: API_KEY });
-
 function createPrompt(game: Game): string {
   const playerNames = game.players.map(p => p.name).join(', ');
   const date = new Date(game.date + 'T00:00:00').toLocaleDateString('en-US', {
@@ -33,10 +24,13 @@ function createPrompt(game: Game): string {
   `;
 }
 
-export async function generateAnnouncement(game: Game): Promise<string> {
-    if (!API_KEY) {
-        return "The Mah Jong game is on! Get ready for a fun time with your friends.";
-    }
+export async function generateAnnouncement(game: Game, apiKey: string): Promise<string> {
+  if (!apiKey) {
+    throw new Error("API key is missing.");
+  }
+  // Create a new instance for each call with the provided key.
+  const ai = new GoogleGenAI({ apiKey });
+
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -51,6 +45,9 @@ export async function generateAnnouncement(game: Game): Promise<string> {
 
   } catch (error) {
     console.error("Error generating announcement with Gemini API:", error);
-    throw new Error("Failed to generate announcement.");
+    if (error instanceof Error && error.message.includes('API key not valid')) {
+       throw new Error("The provided API key is not valid. Please check and re-enter it.");
+    }
+    throw new Error("Failed to generate announcement due to a network or API error.");
   }
 }
