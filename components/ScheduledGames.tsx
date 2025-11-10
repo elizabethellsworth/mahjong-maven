@@ -6,7 +6,6 @@ import { UsersIcon, HomeIcon, XCircleIcon, SparklesIcon, LoadingIcon, ClipboardI
 
 interface ScheduledGamesProps {
   games: Game[];
-  apiKey: string;
   onCancelPlayer: (gameDate: string, playerId: string) => void;
   onFinalizeGame: (gameDate: string) => void;
   onHostChange: (gameDate: string, newHostId: string) => void;
@@ -14,11 +13,10 @@ interface ScheduledGamesProps {
 
 const FinalizeGameModal: React.FC<{
   game: Game;
-  apiKey: string;
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-}> = ({ game, apiKey, isOpen, onClose, onConfirm }) => {
+}> = ({ game, isOpen, onClose, onConfirm }) => {
   const [announcement, setAnnouncement] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
@@ -29,7 +27,7 @@ const FinalizeGameModal: React.FC<{
     setError('');
     setAnnouncement('');
     try {
-      const result = await generateAnnouncement(game, apiKey);
+      const result = await generateAnnouncement(game);
       setAnnouncement(result);
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
@@ -38,7 +36,7 @@ const FinalizeGameModal: React.FC<{
     } finally {
       setIsGenerating(false);
     }
-  }, [game, apiKey]);
+  }, [game]);
   
   const handleCopy = () => {
     navigator.clipboard.writeText(announcement);
@@ -108,11 +106,10 @@ const FinalizeGameModal: React.FC<{
 
 const GameCard: React.FC<{ 
   game: Game;
-  apiKey: string;
   onCancelPlayer: (gameDate: string, playerId: string) => void; 
   onFinalizeGame: (gameDate: string) => void;
   onHostChange: (gameDate: string, newHostId: string) => void;
-}> = ({ game, apiKey, onCancelPlayer, onFinalizeGame, onHostChange }) => {
+}> = ({ game, onCancelPlayer, onFinalizeGame, onHostChange }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const d = new Date(game.date + 'T00:00:00');
   const openSlots = 4 - game.players.length;
@@ -213,13 +210,12 @@ const GameCard: React.FC<{
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={() => onFinalizeGame(game.date)}
-        apiKey={apiKey}
       />
     </>
   );
 };
 
-const ScheduledGames: React.FC<ScheduledGamesProps> = ({ games, apiKey, onCancelPlayer, onFinalizeGame, onHostChange }) => {
+const ScheduledGames: React.FC<ScheduledGamesProps> = ({ games, onCancelPlayer, onFinalizeGame, onHostChange }) => {
   if (games.length === 0) {
     return (
       <div className="text-center py-10 px-6 bg-white rounded-xl shadow-lg">
@@ -234,7 +230,7 @@ const ScheduledGames: React.FC<ScheduledGamesProps> = ({ games, apiKey, onCancel
       <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">This Week's Games</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {games.map(game => (
-          <GameCard key={game.date} game={game} onCancelPlayer={onCancelPlayer} onFinalizeGame={onFinalizeGame} onHostChange={onHostChange} apiKey={apiKey} />
+          <GameCard key={game.date} game={game} onCancelPlayer={onCancelPlayer} onFinalizeGame={onFinalizeGame} onHostChange={onHostChange} />
         ))}
       </div>
     </section>
