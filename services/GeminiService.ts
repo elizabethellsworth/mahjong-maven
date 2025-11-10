@@ -39,15 +39,17 @@ export async function generateAnnouncement(game: Game, apiKey: string): Promise<
     
     const text = response.text;
     if (!text) {
-        throw new Error("No text returned from API.");
+        throw new Error("No text returned from API. The response may have been blocked due to safety settings.");
     }
     return text.trim();
 
   } catch (error) {
     console.error("Error generating announcement with Gemini API:", error);
-    if (error instanceof Error && error.message.includes('API key not valid')) {
-       throw new Error("The provided API key is not valid. Please check and re-enter it.");
+    if (error instanceof Error) {
+        // The Gemini API often returns helpful error messages. We'll pass them along.
+        throw new Error(error.message);
     }
-    throw new Error("Failed to generate announcement due to a network or API error.");
+    // Fallback for non-Error objects being thrown.
+    throw new Error("An unexpected error occurred while communicating with the API.");
   }
 }
