@@ -24,9 +24,10 @@ function createPrompt(game: Game): string {
   `;
 }
 
-export async function generateAnnouncement(game: Game, apiKey: string): Promise<string> {
+export async function generateAnnouncement(game: Game): Promise<string> {
+  const apiKey = process.env.API_KEY;
   if (!apiKey) {
-    throw new Error("API key is missing.");
+    throw new Error("API key is not configured. Please ensure it is set in the environment variables.");
   }
   // Create a new instance for each call with the provided key.
   const ai = new GoogleGenAI({ apiKey });
