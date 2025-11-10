@@ -6,7 +6,6 @@ import ScheduledGames from './components/ScheduledGames';
 import GameHistory from './components/GameHistory';
 import PlayerSwitcher from './components/PlayerSwitcher';
 import { scheduleGames } from './services/schedulingService';
-import ApiKeyModal from './components/ApiKeyModal';
 
 const initialPlayers: Player[] = [
   { id: '1', name: 'Eleanor', avatarUrl: 'https://picsum.photos/id/1027/100/100' },
@@ -18,7 +17,6 @@ const initialPlayers: Player[] = [
 ];
 
 const App: React.FC = () => {
-  const [apiKey, setApiKey] = useState<string | null>(() => localStorage.getItem('googleApiKey') || process.env.API_KEY || null);
   const [players] = useState<Player[]>(initialPlayers);
   const [currentPlayerId, setCurrentPlayerId] = useState<string>(initialPlayers[0].id);
   const [availability, setAvailability] = useState<AllPlayersAvailability>({});
@@ -37,11 +35,6 @@ const App: React.FC = () => {
     }
     return dates;
   }, []);
-  
-  const handleSetApiKey = (key: string) => {
-    localStorage.setItem('googleApiKey', key);
-    setApiKey(key);
-  };
 
   const handleScheduleGames = useCallback(() => {
     setIsLoading(true);
@@ -141,10 +134,6 @@ const App: React.FC = () => {
 
   const currentPlayer = players.find(p => p.id === currentPlayerId) ?? players[0];
 
-  if (!apiKey) {
-    return <ApiKeyModal onSetApiKey={handleSetApiKey} />;
-  }
-
   return (
     <div className="min-h-screen bg-mahjong-ivory text-gray-800 font-sans">
       <Header />
@@ -169,7 +158,6 @@ const App: React.FC = () => {
             onCancelPlayer={handleCancelPlayer}
             onFinalizeGame={handleFinalizeGame}
             onHostChange={handleHostChange}
-            apiKey={apiKey}
           />
           <GameHistory games={gameHistory} players={players} onSetWinner={handleSetWinner} />
         </div>
