@@ -74,7 +74,7 @@ const FinalizeGameModal: React.FC<{
               {isGenerating ? 'Generating...' : '1. Generate Witty Announcement'}
             </button>
           
-          {error && <p className="text-red-500 text-xs text-center">{error}</p>}
+          {error && <div className="text-red-800 bg-red-100 p-3 rounded-md text-sm text-center font-medium">{error}</div>}
           {announcement && (
             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md relative animate-fade-in">
               <p className="text-gray-700 whitespace-pre-wrap text-sm">{announcement}</p>
