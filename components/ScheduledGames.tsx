@@ -6,16 +6,19 @@ import { UsersIcon, HomeIcon, XCircleIcon, SparklesIcon, LoadingIcon, ClipboardI
 
 interface ScheduledGamesProps {
   games: Game[];
+  apiKey: string;
   onCancelPlayer: (gameDate: string, playerId: string) => void;
   onFinalizeGame: (gameDate: string) => void;
+  onHostChange: (gameDate: string, newHostId: string) => void;
 }
 
 const FinalizeGameModal: React.FC<{
   game: Game;
+  apiKey: string;
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-}> = ({ game, isOpen, onClose, onConfirm }) => {
+}> = ({ game, apiKey, isOpen, onClose, onConfirm }) => {
   const [announcement, setAnnouncement] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
@@ -26,15 +29,16 @@ const FinalizeGameModal: React.FC<{
     setError('');
     setAnnouncement('');
     try {
-      const result = await generateAnnouncement(game);
+      const result = await generateAnnouncement(game, apiKey);
       setAnnouncement(result);
     } catch (e) {
-      setError('Could not generate announcement.');
+      const errorMessage = e instanceof Error ? e.message : 'An unknown error occurred.';
+      setError(`Could not generate announcement. ${errorMessage}`);
       console.error(e);
     } finally {
       setIsGenerating(false);
     }
-  }, [game]);
+  }, [game, apiKey]);
   
   const handleCopy = () => {
     navigator.clipboard.writeText(announcement);
@@ -103,10 +107,12 @@ const FinalizeGameModal: React.FC<{
 }
 
 const GameCard: React.FC<{ 
-  game: Game; 
+  game: Game;
+  apiKey: string;
   onCancelPlayer: (gameDate: string, playerId: string) => void; 
   onFinalizeGame: (gameDate: string) => void;
-}> = ({ game, onCancelPlayer, onFinalizeGame }) => {
+  onHostChange: (gameDate: string, newHostId: string) => void;
+}> = ({ game, apiKey, onCancelPlayer, onFinalizeGame, onHostChange }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const d = new Date(game.date + 'T00:00:00');
   const openSlots = 4 - game.players.length;
@@ -136,9 +142,24 @@ const GameCard: React.FC<{
         </div>
         <div className="p-5 space-y-4 flex-grow">
           <div className="flex items-center">
-            <HomeIcon className="h-5 w-5 text-mahjong-gold mr-2" />
-            <span className="font-semibold">Host:</span>
-            <span className="ml-2">{game.host.name}</span>
+            <HomeIcon className="h-5 w-5 text-mahjong-gold mr-2 flex-shrink-0" />
+            <label htmlFor={`host-select-${game.date}`} className="font-semibold whitespace-nowrap">Host:</label>
+            {game.status === 'proposed' && game.potentialHosts && game.potentialHosts.length > 1 ? (
+              <select
+                id={`host-select-${game.date}`}
+                value={game.host.id}
+                onChange={(e) => onHostChange(game.date, e.target.value)}
+                className="ml-2 w-full bg-white p-1 border border-gray-300 rounded-md focus:ring-mahjong-gold focus:border-mahjong-gold text-sm"
+              >
+                {game.potentialHosts.map(host => (
+                  <option key={host.id} value={host.id}>
+                    {host.name}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span className="ml-2">{game.host.name}</span>
+            )}
           </div>
           <div>
             <div className="flex items-center mb-2">
@@ -153,6 +174,7 @@ const GameCard: React.FC<{
                     onClick={() => onCancelPlayer(game.date, player.id)} 
                     className="opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700"
                     title={`Cancel for ${player.name}`}
+                    disabled={game.status === 'finalized'}
                   >
                     <XCircleIcon className="h-5 w-5" />
                   </button>
@@ -191,12 +213,13 @@ const GameCard: React.FC<{
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={() => onFinalizeGame(game.date)}
+        apiKey={apiKey}
       />
     </>
   );
 };
 
-const ScheduledGames: React.FC<ScheduledGamesProps> = ({ games, onCancelPlayer, onFinalizeGame }) => {
+const ScheduledGames: React.FC<ScheduledGamesProps> = ({ games, apiKey, onCancelPlayer, onFinalizeGame, onHostChange }) => {
   if (games.length === 0) {
     return (
       <div className="text-center py-10 px-6 bg-white rounded-xl shadow-lg">
@@ -211,7 +234,7 @@ const ScheduledGames: React.FC<ScheduledGamesProps> = ({ games, onCancelPlayer, 
       <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">This Week's Games</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {games.map(game => (
-          <GameCard key={game.date} game={game} onCancelPlayer={onCancelPlayer} onFinalizeGame={onFinalizeGame} />
+          <GameCard key={game.date} game={game} onCancelPlayer={onCancelPlayer} onFinalizeGame={onFinalizeGame} onHostChange={onHostChange} apiKey={apiKey} />
         ))}
       </div>
     </section>
